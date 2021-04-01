@@ -1,2 +1,2 @@
 a = intput()
-print("hello)
+print("hello")
