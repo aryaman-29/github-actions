@@ -1,31 +1,26 @@
-name: Flake8
-
+name: Formatting python code
 on:
   push:
-  pull_request:
-    branches: ["master"]
-
+    paths:
+    - '**.py'
 jobs:
-  Run:
-    name: "Flake8"
-    runs-on: "ubuntu-18.04"
-
+  autoyapf:
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout 🛎️
-        uses: "actions/checkout@v2"
-
-      - name: Setup Python 🐍
-        uses: "actions/setup-python@v2"
+      - uses: actions/checkout@master
         with:
-          python-version: "3.8"
-
-      - name: Install dependencies 🔧
+          ref: ${{ github.head_ref }}
+      - name: autoyapf
+        id: autoyapf
+        uses: mritunjaysharma394/autoyapf@v2
+        with:
+          args: --style pep8 --recursive --in-place .
+      - name: Check for modified files
+        id: git-check
+        run: echo ::set-output name=modified::$(if git diff-index --quiet HEAD --; then echo "false"; else echo "true"; fi)
+      - name: Push changes
+        if: steps.git-check.outputs.modified == 'true'
         run: |
-          python -VV
-          python -m site
-          python -m pip install --upgrade pip setuptools wheel
-          python -m pip install flake8
-          python -m pip install flake8-github-actions
-
-      - name: "Run Flake8"
-        run: "flake8 --format github"
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+          git commit -am "Automated autoyapf fixes"
+          git push
