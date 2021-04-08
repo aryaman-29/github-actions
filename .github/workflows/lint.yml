@@ -1,26 +1,13 @@
-name: Formatting python code
-on:
-  push:
-    paths:
-    - '**.py'
+name: Lint code with Black
+
+on: [push, pull_request]
+
 jobs:
-  autoyapf:
+  lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+      - uses: psf/black@20.8b1
         with:
-          ref: ${{ github.head_ref }}
-      - name: autoyapf
-        id: autoyapf
-        uses: mritunjaysharma394/autoyapf@v2
-        with:
-          args: --style pep8 --recursive --in-place .
-      - name: Check for modified files
-        id: git-check
-        run: echo ::set-output name=modified::$(if git diff-index --quiet HEAD --; then echo "false"; else echo "true"; fi)
-      - name: Push changes
-        if: steps.git-check.outputs.modified == 'true'
-        run: |
-          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
-          git commit -am "Automated autoyapf fixes"
-          git push
+          args: ". --check"
